@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1a2e">
 <title>Spanish Flashcards</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌮</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌮</text></svg>">
 <link rel="manifest" href="manifest.json">
 <style>
 :root {
@@ -1086,8 +1088,11 @@ const SEED_WORDS = [{"s":"ser","e":"to be (permanent)","t":1,"w":5,"tp":"Verb","
 
 async function seedIfEmpty() {
   const existing = await dbGetAll('words');
-  if (existing.length > 0) return;
+  if (existing.length >= SEED_WORDS.length) return;
+  const existingSpanish = new Set(existing.map(w => w.spanish));
+  let added = 0;
   for (const w of SEED_WORDS) {
+    if (existingSpanish.has(w.s)) continue;
     const entry = createWordEntry({
       spanish: w.s, english: w.e, type: w.tp, tier: w.t, tierWeight: w.w,
       french: w.fr || '', example: w.ex || '', verbGroup: w.vg || '',
@@ -1095,7 +1100,9 @@ async function seedIfEmpty() {
       category: ''
     });
     await dbPut('words', entry);
+    added++;
   }
+  if (added > 0) console.log('Seeded ' + added + ' missing words');
 }
 
 // ===== Init =====
