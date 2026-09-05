@@ -769,20 +769,30 @@ async function showNextCard() {
 
   currentCard = currentQueue.shift();
   isFlipped = false;
-  document.getElementById('card-inner').classList.remove('flipped');
+  const cardInner = document.getElementById('card-inner');
   document.getElementById('rating-buttons').style.display = 'none';
 
+  // Step 1: Update front face WHILE card is still flipped (front is hidden behind back)
   document.getElementById('card-front-word').textContent = currentCard.spanish;
   document.getElementById('card-front-hint').textContent = 'Tap to reveal';
   document.getElementById('card-type').textContent = currentCard.type || '';
-  document.getElementById('card-type-back').textContent = currentCard.type || '';
   const tierNames = { 1: 'Tier 1', 2: 'Tier 2', 3: 'Tier 3', 4: 'Tier 4', 5: 'Tier 5' };
   document.getElementById('card-tier').textContent = tierNames[currentCard.tier] || '';
-  document.getElementById('card-tier-back').textContent = tierNames[currentCard.tier] || '';
 
+  // Step 2: Instantly unflip (no animation) — front now shows new Spanish, back is hidden
+  cardInner.style.transition = 'none';
+  cardInner.classList.remove('flipped');
+  void cardInner.offsetWidth;
+
+  // Step 3: Now update back face (it's hidden behind front, user can't see it)
+  document.getElementById('card-type-back').textContent = currentCard.type || '';
+  document.getElementById('card-tier-back').textContent = tierNames[currentCard.tier] || '';
   document.getElementById('card-back-word').textContent = currentCard.english;
   document.getElementById('card-back-example').textContent = currentCard.example || '';
   document.getElementById('card-back-french').textContent = currentCard.french ? '\u{1F1EB}\u{1F1F7} ' + currentCard.french : '';
+
+  // Step 4: Re-enable transition for the next user-initiated flip
+  requestAnimationFrame(() => { cardInner.style.transition = ''; });
 
   let meta = '';
   if (currentCard.type === 'Verb') {
